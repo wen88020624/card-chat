@@ -18,3 +18,5 @@ prisma/dev.db-journal
 
 # Editor
 .vscode/
+.claude/settings.local.json
+.vercel
