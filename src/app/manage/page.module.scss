@@ -1,0 +1,151 @@
+@use '@styles/variables.module' as v;
+
+.page {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 56px);
+}
+
+.sidebar {
+  background: v.$surface;
+  border-right: 1px solid v.$border;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: v.$spacing-md v.$spacing-lg;
+  border-bottom: 1px solid v.$border;
+}
+
+.categoryList {
+  list-style: none;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.categoryItem {
+  display: flex;
+  align-items: center;
+  gap: v.$spacing-sm;
+  padding: v.$spacing-sm v.$spacing-lg;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover {
+    background: v.$surface-alt;
+  }
+
+  &.selected {
+    background: v.$primary-light;
+
+    .categoryName {
+      color: v.$primary;
+      font-weight: 600;
+    }
+  }
+}
+
+.categoryName {
+  flex: 1;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoryCount {
+  font-size: 0.75rem;
+  color: v.$text-muted;
+  background: v.$surface-alt;
+  border-radius: v.$radius-full;
+  padding: 1px 7px;
+  min-width: 22px;
+  text-align: center;
+}
+
+.categoryActions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.12s;
+
+  .categoryItem:hover & {
+    opacity: 1;
+  }
+}
+
+.main {
+  padding: v.$spacing-xl;
+  display: flex;
+  flex-direction: column;
+  gap: v.$spacing-lg;
+}
+
+.mainHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: v.$spacing-md;
+}
+
+.card {
+  background: v.$surface;
+  border: 1px solid v.$border;
+  border-radius: v.$radius-md;
+  padding: v.$spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: v.$spacing-sm;
+  box-shadow: v.$shadow-sm;
+  transition: box-shadow 0.15s;
+
+  &:hover {
+    box-shadow: v.$shadow-md;
+  }
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardActions {
+  display: flex;
+  gap: 2px;
+}
+
+.cardContent {
+  color: v.$text;
+  line-height: 1.5;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: v.$spacing-md;
+  padding-top: v.$spacing-md;
+}
+
+.deleteActions {
+  display: flex;
+  gap: v.$spacing-md;
+  justify-content: flex-end;
+  padding-top: v.$spacing-md;
+}

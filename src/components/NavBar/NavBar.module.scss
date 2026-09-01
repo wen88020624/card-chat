@@ -1,0 +1,46 @@
+@use '@styles/variables.module' as v;
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: v.$spacing-xl;
+  height: 56px;
+  padding: 0 v.$spacing-xl;
+  background: v.$surface;
+  border-bottom: 1px solid v.$border;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: v.$primary;
+  letter-spacing: -0.02em;
+}
+
+.links {
+  display: flex;
+  gap: v.$spacing-xs;
+  list-style: none;
+}
+
+.link {
+  padding: v.$spacing-xs v.$spacing-md;
+  border-radius: v.$radius-full;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: v.$text-muted;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: v.$surface-alt;
+    color: v.$text;
+  }
+
+  &.active {
+    background: v.$primary-light;
+    color: v.$primary;
+  }
+}

@@ -1,0 +1,112 @@
+@use '@styles/variables.module' as v;
+
+.page {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 56px);
+}
+
+.sidebar {
+  background: v.$surface;
+  border-right: 1px solid v.$border;
+  padding: v.$spacing-xl v.$spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: v.$spacing-md;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  color: v.$text-muted;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: v.$spacing-sm;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: v.$spacing-sm;
+}
+
+.chip {
+  cursor: pointer;
+}
+
+.loadBtn {
+  margin-top: v.$spacing-md;
+}
+
+.poolInfo {
+  text-align: center;
+}
+
+.main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: v.$spacing-2xl;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: v.$spacing-lg;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: v.$spacing-md;
+  color: v.$text-muted;
+}
+
+.drawBtn {
+  padding: v.$spacing-md v.$spacing-2xl;
+  font-size: 1.1rem;
+}
+
+.resetBtn {
+  margin-top: v.$spacing-sm;
+}
+
+.cardWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: v.$spacing-xl;
+  width: 100%;
+  max-width: 560px;
+}
+
+.card {
+  width: 100%;
+  background: v.$surface;
+  border-radius: v.$radius-lg;
+  box-shadow: v.$shadow-lg;
+  padding: v.$spacing-2xl;
+  display: flex;
+  flex-direction: column;
+  gap: v.$spacing-lg;
+  min-height: 220px;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardContent {
+  font-size: 1.4rem;
+  line-height: 1.5;
+  color: v.$text;
+}
+
+.cardActions {
+  display: flex;
+  gap: v.$spacing-md;
+}

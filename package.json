@@ -1,0 +1,40 @@
+{
+  "name": "cart-chat",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:push:turso": "node --env-file=.env prisma/push-turso.js",
+    "db:seed": "node --env-file=.env prisma/seed.js"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@libsql/client": "^0.17.4",
+    "@mui/joy": "5.0.0-beta.52",
+    "@prisma/adapter-libsql": "5.22.0",
+    "@prisma/client": "^5.22.0",
+    "@reduxjs/toolkit": "^2.5.0",
+    "next": "15.3.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "react-redux": "^9.2.0",
+    "redux-saga": "^1.3.0",
+    "sass": "^1.83.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "prisma": "^5.22.0"
+  },
+  "prisma": {
+    "seed": "node --env-file=.env prisma/seed.js"
+  }
+}
