@@ -22,7 +22,7 @@
     "@prisma/adapter-libsql": "5.22.0",
     "@prisma/client": "^5.22.0",
     "@reduxjs/toolkit": "^2.5.0",
-    "next": "15.3.4",
+    "next": "16.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
