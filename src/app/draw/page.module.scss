@@ -1,11 +1,14 @@
 @use '@styles/variables.module' as v;
 
+// ── Layout ──────────────────────────────────────────────
 .page {
   display: grid;
   grid-template-columns: 260px 1fr;
   min-height: calc(100vh - 56px);
+  position: relative;
 }
 
+// ── Sidebar ─────────────────────────────────────────────
 .sidebar {
   background: v.$surface;
   border-right: 1px solid v.$border;
@@ -13,6 +16,31 @@
   display: flex;
   flex-direction: column;
   gap: v.$spacing-md;
+}
+
+.sidebarHeader {
+  display: none;
+}
+
+.sidebarTitle {
+  font-weight: 700;
+  font-size: 1rem;
+  color: v.$text;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: v.$text-muted;
+  cursor: pointer;
+  padding: v.$spacing-xs;
+  border-radius: v.$radius-sm;
+  line-height: 1;
+
+  &:hover {
+    background: v.$surface-alt;
+  }
 }
 
 .sectionTitle {
@@ -42,6 +70,7 @@
   text-align: center;
 }
 
+// ── Main ────────────────────────────────────────────────
 .main {
   display: flex;
   align-items: center;
@@ -109,4 +138,121 @@
 .cardActions {
   display: flex;
   gap: v.$spacing-md;
+}
+
+// ── FAB (mobile only) ───────────────────────────────────
+.fab {
+  display: none;
+}
+
+.fabBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: v.$primary;
+  border: 2px solid v.$surface;
+}
+
+// ── Backdrop (mobile only) ──────────────────────────────
+.backdrop {
+  display: none;
+}
+
+// ── Mobile ──────────────────────────────────────────────
+@media (max-width: 639px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  // Sidebar becomes a fixed drawer
+  .sidebar {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+    box-shadow: v.$shadow-lg;
+    padding-top: 0;
+    gap: v.$spacing-sm;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .sidebarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: v.$spacing-md v.$spacing-lg;
+    border-bottom: 1px solid v.$border;
+    position: sticky;
+    top: 0;
+    background: v.$surface;
+    z-index: 1;
+  }
+
+  .sidebar > :not(.sidebarHeader) {
+    padding-left: v.$spacing-lg;
+    padding-right: v.$spacing-lg;
+  }
+
+  // Backdrop
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    top: 56px;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 199;
+  }
+
+  // FAB filter button
+  .fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: v.$primary;
+    color: #fff;
+    font-size: 1.3rem;
+    border: none;
+    box-shadow: v.$shadow-md;
+    cursor: pointer;
+    z-index: 100;
+    transition: transform 0.15s, box-shadow 0.15s;
+
+    &:active {
+      transform: scale(0.93);
+    }
+  }
+
+  .main {
+    padding: v.$spacing-lg v.$spacing-md;
+    min-height: calc(100vh - 56px);
+  }
+
+  .card {
+    padding: v.$spacing-lg;
+  }
+
+  .cardContent {
+    font-size: 1.15rem;
+  }
+
+  .cardWrap {
+    max-width: 100%;
+  }
 }

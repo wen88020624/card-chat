@@ -37,6 +37,7 @@ export default function ManageContent() {
   const categories = useAppSelector((s) => s.categories.list);
   const cards = useAppSelector((s) => s.cards.list);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [catModal, setCatModal] = useState({ open: false, data: null });
   const [cardModal, setCardModal] = useState({ open: false, data: null });
   const [deleteModal, setDeleteModal] = useState({
@@ -109,20 +110,42 @@ export default function ManageContent() {
 
   return (
     <div className={styles.page}>
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className={styles.backdrop}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Category sidebar */}
-      <aside className={styles.sidebar}>
+      <aside
+        className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}
+      >
         <div className={styles.sidebarHeader}>
           <Typography level="title-md">Categories</Typography>
-          <Button size="sm" onClick={() => openCatModal()}>
-            + New
-          </Button>
+          <div className={styles.sidebarHeaderActions}>
+            <Button size="sm" onClick={() => openCatModal()}>
+              + New
+            </Button>
+            <button
+              className={styles.closeBtn}
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Close categories"
+            >
+              ✕
+            </button>
+          </div>
         </div>
         <ul className={styles.categoryList}>
           {categories.map((cat) => (
             <li
               key={cat.id}
               className={`${styles.categoryItem} ${selectedCategory === cat.id ? styles.selected : ''}`}
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => {
+                setSelectedCategory(cat.id);
+                setSidebarOpen(false);
+              }}
             >
               <span className={styles.categoryName}>{cat.name}</span>
               <span className={styles.categoryCount}>
@@ -179,9 +202,11 @@ export default function ManageContent() {
               <Typography level="title-md">
                 {categories.find((c) => c.id === selectedCategory)?.name}
               </Typography>
-              <Button size="sm" onClick={() => openCardModal()}>
-                + Add Card
-              </Button>
+              <div className={styles.mainHeaderActions}>
+                <Button size="sm" onClick={() => openCardModal()}>
+                  + Add Card
+                </Button>
+              </div>
             </div>
             <div className={styles.cardGrid}>
               {filteredCards.map((card) => (
@@ -327,6 +352,16 @@ export default function ManageContent() {
           </form>
         </ModalDialog>
       </Modal>
+
+      {/* Mobile FAB */}
+      <button
+        className={styles.fab}
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open categories"
+      >
+        ☰
+        {selectedCategory && <span className={styles.fabBadge} />}
+      </button>
 
       {/* Delete confirm */}
       <Modal

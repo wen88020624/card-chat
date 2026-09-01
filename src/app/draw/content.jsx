@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Button from '@mui/joy/Button';
 import Chip from '@mui/joy/Chip';
 import CircularProgress from '@mui/joy/CircularProgress';
@@ -23,6 +23,7 @@ export default function DrawContent() {
   const categories = useAppSelector((s) => s.categories.list);
   const { pool, current, drawnIds, filters, loading, exhausted } =
     useAppSelector((s) => s.draw);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     dispatch(FETCH_CATEGORIES());
@@ -44,21 +45,38 @@ export default function DrawContent() {
 
   const handleLoad = () => {
     dispatch(FETCH_DRAW_POOL(filters));
+    setSidebarOpen(false);
   };
 
-  const handleDraw = () => {
-    dispatch(DRAW_CARD());
-  };
-
-  const handleReset = () => {
-    dispatch(RESET_DRAW());
-  };
+  const handleDraw = () => dispatch(DRAW_CARD());
+  const handleReset = () => dispatch(RESET_DRAW());
 
   const remaining = pool.length - drawnIds.length;
 
   return (
     <div className={styles.page}>
-      <section className={styles.sidebar}>
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className={styles.backdrop}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <section
+        className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}
+      >
+        <div className={styles.sidebarHeader}>
+          <span className={styles.sidebarTitle}>Filters</span>
+          <button
+            className={styles.closeBtn}
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close filters"
+          >
+            ✕
+          </button>
+        </div>
+
         <Typography level="title-md" className={styles.sectionTitle}>
           Categories
         </Typography>
@@ -112,11 +130,7 @@ export default function DrawContent() {
         </Button>
 
         {pool.length > 0 && (
-          <Typography
-            level="body-sm"
-            color="neutral"
-            className={styles.poolInfo}
-          >
+          <Typography level="body-sm" color="neutral" className={styles.poolInfo}>
             {remaining} / {pool.length} remaining
           </Typography>
         )}
@@ -186,6 +200,18 @@ export default function DrawContent() {
           </div>
         )}
       </section>
+
+      {/* Mobile FAB */}
+      <button
+        className={styles.fab}
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open filters"
+      >
+        ⚙
+        {(filters.categoryIds.length > 0 || filters.stars.length > 0) && (
+          <span className={styles.fabBadge} />
+        )}
+      </button>
     </div>
   );
 }
