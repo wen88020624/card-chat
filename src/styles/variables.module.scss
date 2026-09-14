@@ -1,18 +1,20 @@
 // Color palette
-$primary: #5b5bd6;
-$primary-light: #e8e8fd;
-$surface: #ffffff;
-$surface-alt: #f7f7f8;
-$border: #e2e2e8;
-$text: #1c1c1e;
-$text-muted: #6b6b7b;
-$danger: #e53e3e;
-$danger-light: #fff5f5;
-$success: #38a169;
+// Values reference CSS custom properties (defined in globals.scss) so the
+// palette can swap at runtime for dark mode; the fallback is the light value.
+$primary: var(--primary, #5b5bd6);
+$primary-light: var(--primary-light, #e8e8fd);
+$surface: var(--surface, #ffffff);
+$surface-alt: var(--surface-alt, #f7f7f8);
+$border: var(--border, #e2e2e8);
+$text: var(--text, #1c1c1e);
+$text-muted: var(--text-muted, #6b6b7b);
+$danger: var(--danger, #e53e3e);
+$danger-light: var(--danger-light, #fff5f5);
+$success: var(--success, #38a169);
 
 // Star colors
-$star-filled: #f6ad55;
-$star-empty: #e2e2e8;
+$star-filled: var(--star-filled, #f6ad55);
+$star-empty: var(--star-empty, #e2e2e8);
 
 // Spacing
 $spacing-xs: 4px;
