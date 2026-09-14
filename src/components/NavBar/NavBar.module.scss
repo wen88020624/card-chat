@@ -26,6 +26,13 @@
   list-style: none;
 }
 
+.themeSwitch {
+  margin-left: auto;
+  --Switch-trackWidth: 44px;
+  --Switch-trackHeight: 24px;
+  --Switch-thumbSize: 18px;
+}
+
 .link {
   padding: v.$spacing-xs v.$spacing-md;
   border-radius: v.$radius-full;
