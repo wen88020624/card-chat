@@ -1,33 +1,81 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { DrawDeck } from '@components';
+import { useAppDispatch, useAppSelector } from '@hooks/use-redux';
 import Button from '@mui/joy/Button';
 import Chip from '@mui/joy/Chip';
 import CircularProgress from '@mui/joy/CircularProgress';
 import Typography from '@mui/joy/Typography';
-import { useAppDispatch, useAppSelector } from '@hooks/use-redux';
 import { FETCH_CATEGORIES } from '@redux/slices/categoriesSlice';
 import {
-  FETCH_DRAW_POOL,
-  SET_DRAW_FILTERS,
+  CLOSE_CARD,
   DRAW_CARD,
+  FETCH_DRAW_POOL,
   RESET_DRAW,
+  SET_DRAW_FILTERS,
 } from '@redux/slices/drawSlice';
-import { StarRating } from '@components';
+import { MotionConfig } from 'motion/react';
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import styles from './page.module.scss';
 
 const STAR_OPTIONS = [1, 2, 3, 4];
+const COLLAPSED_KEY = 'draw.sidebarCollapsed';
+
+function FilterIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.icon}>
+      <path d="M4 6h16M7 12h10M10 18h4" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ direction }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={`${styles.icon} ${direction === 'right' ? styles.flipX : ''}`}
+    >
+      <path d="M15 6l-6 6 6 6" />
+    </svg>
+  );
+}
 
 export default function DrawContent() {
   const dispatch = useAppDispatch();
   const categories = useAppSelector((s) => s.categories.list);
-  const { pool, current, drawnIds, filters, loading, exhausted } =
+  const { pool, dealOrder, current, drawnIds, filters, loading, exhausted } =
     useAppSelector((s) => s.draw);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false); // mobile
+  const [collapsed, setCollapsed] = useState(false); // desktop
 
   useEffect(() => {
     dispatch(FETCH_CATEGORIES());
+    try {
+      setCollapsed(localStorage.getItem(COLLAPSED_KEY) === '1');
+    } catch {}
   }, [dispatch]);
+
+  // Filters apply immediately. On mount, keep an existing round instead of
+  // reshuffling when coming back from another page.
+  const mounted = useRef(false);
+  const hasPool = pool.length > 0;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refetch only when filters change
+  useEffect(() => {
+    const firstRun = !mounted.current;
+    mounted.current = true;
+    if (firstRun && hasPool) return;
+    dispatch(FETCH_DRAW_POOL(filters));
+  }, [dispatch, filters]);
+
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    try {
+      localStorage.setItem(COLLAPSED_KEY, next ? '1' : '0');
+    } catch {}
+  };
 
   const toggleCategory = (id) => {
     const next = filters.categoryIds.includes(id)
@@ -43,175 +91,216 @@ export default function DrawContent() {
     dispatch(SET_DRAW_FILTERS({ ...filters, stars: next }));
   };
 
-  const handleLoad = () => {
-    dispatch(FETCH_DRAW_POOL(filters));
-    setSidebarOpen(false);
-  };
+  const clearFilters = () =>
+    dispatch(SET_DRAW_FILTERS({ categoryIds: [], stars: [] }));
 
-  const handleDraw = () => dispatch(DRAW_CARD());
+  const handleDraw = (fanIndex) => {
+    const order = dealOrder.filter((id) => !drawnIds.includes(id));
+    dispatch(DRAW_CARD(order[fanIndex]));
+  };
+  const handleClose = () => dispatch(CLOSE_CARD());
   const handleReset = () => dispatch(RESET_DRAW());
 
   const remaining = pool.length - drawnIds.length;
+  const activeCount = filters.categoryIds.length + filters.stars.length;
 
   return (
-    <div className={styles.page}>
-      {/* Mobile backdrop */}
-      {sidebarOpen && (
-        <div
-          className={styles.backdrop}
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <section
-        className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}
+    <MotionConfig reducedMotion="user">
+      <div
+        className={`${styles.page} ${collapsed ? styles.pageCollapsed : ''}`}
       >
-        <div className={styles.sidebarHeader}>
-          <span className={styles.sidebarTitle}>Filters</span>
+        {drawerOpen && (
           <button
-            className={styles.closeBtn}
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close filters"
-          >
-            ✕
-          </button>
-        </div>
+            type="button"
+            className={styles.backdrop}
+            onClick={() => setDrawerOpen(false)}
+            aria-label="關閉篩選"
+          />
+        )}
 
-        <Typography level="title-md" className={styles.sectionTitle}>
-          Categories
-        </Typography>
-        <div className={styles.chips}>
-          {categories.map((cat) => (
-            <Chip
-              key={cat.id}
-              variant={
-                filters.categoryIds.includes(cat.id) ? 'solid' : 'outlined'
-              }
-              color={
-                filters.categoryIds.includes(cat.id) ? 'primary' : 'neutral'
-              }
-              onClick={() => toggleCategory(cat.id)}
-              className={styles.chip}
-            >
-              {cat.name}
-            </Chip>
-          ))}
-          {categories.length === 0 && (
-            <Typography level="body-sm" color="neutral">
-              No categories yet
-            </Typography>
-          )}
-        </div>
-
-        <Typography level="title-md" className={styles.sectionTitle}>
-          Difficulty
-        </Typography>
-        <div className={styles.chips}>
-          {STAR_OPTIONS.map((star) => (
-            <Chip
-              key={star}
-              variant={filters.stars.includes(star) ? 'solid' : 'outlined'}
-              color={filters.stars.includes(star) ? 'warning' : 'neutral'}
-              onClick={() => toggleStar(star)}
-              className={styles.chip}
-            >
-              {'★'.repeat(star)}
-            </Chip>
-          ))}
-        </div>
-
-        <Button
-          fullWidth
-          onClick={handleLoad}
-          loading={loading}
-          className={styles.loadBtn}
+        <aside
+          className={`${styles.sidebar} ${drawerOpen ? styles.sidebarOpen : ''}`}
+          aria-label="篩選"
         >
-          Load Cards
-        </Button>
-
-        {pool.length > 0 && (
-          <Typography level="body-sm" color="neutral" className={styles.poolInfo}>
-            {remaining} / {pool.length} remaining
-          </Typography>
-        )}
-      </section>
-
-      <section className={styles.main}>
-        {loading && (
-          <div className={styles.center}>
-            <CircularProgress />
-          </div>
-        )}
-
-        {!loading && pool.length === 0 && (
-          <div className={styles.empty}>
-            <Typography level="h3">🃏</Typography>
-            <Typography level="body-md" color="neutral">
-              Select filters and click Load Cards to begin
-            </Typography>
-          </div>
-        )}
-
-        {!loading && pool.length > 0 && !current && !exhausted && (
-          <div className={styles.center}>
-            <Button size="lg" onClick={handleDraw} className={styles.drawBtn}>
-              Draw a Card
-            </Button>
-          </div>
-        )}
-
-        {exhausted && (
-          <div className={styles.empty}>
-            <Typography level="h3">🎉</Typography>
-            <Typography level="body-md" color="neutral">
-              All cards drawn!
-            </Typography>
-            <Button
-              variant="outlined"
-              onClick={handleReset}
-              className={styles.resetBtn}
+          {/* Desktop collapsed rail; CSS shows rail or panel */}
+          <div className={styles.rail}>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              onClick={toggleCollapsed}
+              aria-label="展開篩選"
+              title="展開篩選"
             >
-              Reset & Draw Again
-            </Button>
+              <ChevronIcon direction="right" />
+            </button>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              onClick={toggleCollapsed}
+              aria-label={`篩選（${activeCount} 個條件）`}
+              title="篩選"
+            >
+              <FilterIcon />
+              {activeCount > 0 && (
+                <span className={styles.badge}>{activeCount}</span>
+              )}
+            </button>
           </div>
-        )}
+          <div className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <span className={styles.panelTitle}>篩選</span>
+              {activeCount > 0 && (
+                <button
+                  type="button"
+                  className={styles.textBtn}
+                  onClick={clearFilters}
+                >
+                  清除
+                </button>
+              )}
+              <button
+                type="button"
+                className={`${styles.iconBtn} ${styles.collapseBtn}`}
+                onClick={toggleCollapsed}
+                aria-label="收合篩選"
+                title="收合篩選"
+              >
+                <ChevronIcon direction="left" />
+              </button>
+              <button
+                type="button"
+                className={`${styles.iconBtn} ${styles.drawerCloseBtn}`}
+                onClick={() => setDrawerOpen(false)}
+                aria-label="關閉篩選"
+              >
+                ✕
+              </button>
+            </div>
 
-        {current && !exhausted && (
-          <div className={styles.cardWrap}>
-            <div className={styles.card}>
-              <div className={styles.cardMeta}>
-                <Chip size="sm" variant="soft" color="primary">
-                  {current.category?.name}
-                </Chip>
-                <StarRating value={current.stars} readOnly />
+            <div className={styles.group}>
+              <span className={styles.groupTitle}>分類</span>
+              <div className={styles.chips}>
+                {categories.map((cat) => {
+                  const on = filters.categoryIds.includes(cat.id);
+                  return (
+                    <Chip
+                      key={cat.id}
+                      size="sm"
+                      variant={on ? 'solid' : 'soft'}
+                      color={on ? 'primary' : 'neutral'}
+                      onClick={() => toggleCategory(cat.id)}
+                    >
+                      {cat.name}
+                    </Chip>
+                  );
+                })}
+                {categories.length === 0 && (
+                  <Typography level="body-sm" color="neutral">
+                    還沒有分類，<Link href="/manage">去新增</Link>
+                  </Typography>
+                )}
               </div>
-              <Typography level="h3" className={styles.cardContent}>
-                {current.content}
-              </Typography>
             </div>
-            <div className={styles.cardActions}>
-              <Button onClick={handleDraw} disabled={remaining === 0}>
-                Next Card
-              </Button>
-              <Button variant="outlined" color="neutral" onClick={handleReset}>
-                Reset
-              </Button>
-            </div>
-          </div>
-        )}
-      </section>
 
-      {/* Mobile FAB */}
-      <button
-        className={styles.fab}
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Open filters"
-      >
-        ⚙
-        {(filters.categoryIds.length > 0 || filters.stars.length > 0) && (
-          <span className={styles.fabBadge} />
-        )}
-      </button>
-    </div>
+            <div className={styles.group}>
+              <span className={styles.groupTitle}>難度</span>
+              <div className={styles.chips}>
+                {STAR_OPTIONS.map((star) => {
+                  const on = filters.stars.includes(star);
+                  return (
+                    <Chip
+                      key={star}
+                      size="sm"
+                      variant={on ? 'solid' : 'soft'}
+                      color={on ? 'warning' : 'neutral'}
+                      onClick={() => toggleStar(star)}
+                    >
+                      {'★'.repeat(star)}
+                    </Chip>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Typography level="body-xs" color="neutral">
+              未選任何條件時抽全部卡片
+            </Typography>
+          </div>
+        </aside>
+
+        <section className={styles.main}>
+          {loading && (
+            <div className={styles.center}>
+              <CircularProgress />
+            </div>
+          )}
+
+          {!loading && pool.length === 0 && (
+            <div className={styles.empty}>
+              <Typography level="body-md" color="neutral">
+                沒有符合條件的卡片
+              </Typography>
+              {activeCount > 0 ? (
+                <Button variant="outlined" onClick={clearFilters}>
+                  清除篩選
+                </Button>
+              ) : (
+                <Button component={Link} href="/manage" variant="outlined">
+                  去新增卡片
+                </Button>
+              )}
+            </div>
+          )}
+
+          {!loading && pool.length > 0 && !exhausted && (
+            <div className={styles.deckWrap}>
+              <DrawDeck
+                remaining={remaining}
+                current={current}
+                onDraw={handleDraw}
+                onClose={handleClose}
+              />
+              <div className={styles.deckBar}>
+                <Typography level="body-sm" color="neutral">
+                  剩餘 {remaining} / {pool.length}
+                </Typography>
+                <Button
+                  size="sm"
+                  variant="plain"
+                  color="neutral"
+                  onClick={handleReset}
+                >
+                  重新洗牌
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {exhausted && (
+            <div className={styles.empty}>
+              <Typography level="body-md" color="neutral">
+                這副牌抽完了
+              </Typography>
+              <Button variant="outlined" onClick={handleReset}>
+                重新洗牌
+              </Button>
+            </div>
+          )}
+        </section>
+
+        {/* Mobile: open filter drawer */}
+        <button
+          type="button"
+          className={styles.fab}
+          onClick={() => setDrawerOpen(true)}
+          aria-label="開啟篩選"
+        >
+          <FilterIcon />
+          {activeCount > 0 && (
+            <span className={styles.badge}>{activeCount}</span>
+          )}
+        </button>
+      </div>
+    </MotionConfig>
   );
 }

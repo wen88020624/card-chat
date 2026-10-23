@@ -1,0 +1,47 @@
+@use '@styles/variables.module' as v;
+
+.page {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: v.$spacing-xl v.$spacing-md;
+  background: v.$surface-alt;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: v.$surface;
+  border-radius: v.$radius-lg;
+  box-shadow: v.$shadow-md;
+  padding: v.$spacing-2xl;
+  display: flex;
+  flex-direction: column;
+  gap: v.$spacing-lg;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: v.$spacing-md;
+}
+
+.error {
+  background: v.$danger-light;
+  color: v.$danger;
+  border-radius: v.$radius-sm;
+  padding: v.$spacing-sm v.$spacing-md;
+  font-size: 0.875rem;
+}
+
+.footer {
+  text-align: center;
+  font-size: 0.875rem;
+  color: v.$text-muted;
+}
+
+.link {
+  color: v.$primary;
+  font-weight: 500;
+}

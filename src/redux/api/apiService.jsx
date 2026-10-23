@@ -46,3 +46,9 @@ export const cardsApi = {
     }),
   remove: (id) => fetchApi(`/cards/${id}`, { method: 'DELETE' }),
 };
+
+// Registration only; sign-in goes through next-auth's signIn()
+export const authApi = {
+  register: (body) =>
+    fetchApi('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
+};

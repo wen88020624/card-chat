@@ -11,6 +11,20 @@ async function main() {
   }
 
   const client = createClient({ url, authToken });
+
+  // Create migration tracking table if it doesn't exist
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS "_MigrationHistory" (
+      "migration_name" TEXT NOT NULL PRIMARY KEY,
+      "applied_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  const applied = new Set(
+    (await client.execute('SELECT migration_name FROM "_MigrationHistory"'))
+      .rows.map((r) => r.migration_name),
+  );
+
   const migrationsDir = path.join(__dirname, 'migrations');
   const entries = fs
     .readdirSync(migrationsDir)
@@ -18,11 +32,20 @@ async function main() {
     .sort();
 
   for (const entry of entries) {
+    if (applied.has(entry)) {
+      console.log(`跳過（已套用）${entry}`);
+      continue;
+    }
+
     const sqlPath = path.join(migrationsDir, entry, 'migration.sql');
     if (!fs.existsSync(sqlPath)) continue;
 
     const sql = fs.readFileSync(sqlPath, 'utf8');
     await client.executeMultiple(sql);
+    await client.execute({
+      sql: 'INSERT INTO "_MigrationHistory" (migration_name) VALUES (?)',
+      args: [entry],
+    });
     console.log(`已套用 ${entry}`);
   }
 

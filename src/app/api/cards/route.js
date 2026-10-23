@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
 
 export async function GET(request) {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: '未授權' }, { status: 401 });
+  const userId = Number(session.user.id);
+
   const { searchParams } = new URL(request.url);
   const categoryIds = searchParams.getAll('categoryId').map(Number);
   const stars = searchParams.getAll('stars').map(Number);
 
-  const where = {};
+  const where = { category: { userId } };
   if (categoryIds.length > 0) where.categoryId = { in: categoryIds };
   if (stars.length > 0) where.stars = { in: stars };
 
@@ -20,6 +25,10 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: '未授權' }, { status: 401 });
+  const userId = Number(session.user.id);
+
   const { content, stars, categoryId } = await request.json();
 
   if (!content?.trim()) {
@@ -27,17 +36,18 @@ export async function POST(request) {
   }
 
   if (!categoryId) {
-    return NextResponse.json(
-      { error: 'Category is required' },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: 'Category is required' }, { status: 400 });
   }
 
   if (!stars || stars < 1 || stars > 4) {
-    return NextResponse.json(
-      { error: 'Stars must be between 1 and 4' },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: 'Stars must be between 1 and 4' }, { status: 400 });
+  }
+
+  const category = await prisma.category.findUnique({
+    where: { id: Number(categoryId), userId },
+  });
+  if (!category) {
+    return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
   }
 
   const card = await prisma.card.create({

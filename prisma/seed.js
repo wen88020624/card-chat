@@ -85,13 +85,22 @@ const ICEBREAKERS = [
 async function main() {
   await prisma.card.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
+
+  const { hash } = await import('bcryptjs');
+  const seedUser = await prisma.user.create({
+    data: {
+      email: 'seed@example.com',
+      passwordHash: await hash('password123', 12),
+    },
+  });
 
   const deepTalk = await prisma.category.create({
-    data: { name: '深度對話' },
+    data: { name: '深度對話', userId: seedUser.id },
   });
 
   const icebreaker = await prisma.category.create({
-    data: { name: '破冰' },
+    data: { name: '破冰', userId: seedUser.id },
   });
 
   const deepTalkCards = Object.entries(DEEP_TALK).flatMap(([stars, contents]) =>

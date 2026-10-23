@@ -1,81 +1,169 @@
 @use '@styles/variables.module' as v;
 
+$sidebar-width: 240px;
+$rail-width: 56px;
+$nav-height: 56px;
+
 // ── Layout ──────────────────────────────────────────────
 .page {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  min-height: calc(100vh - 56px);
+  grid-template-columns: $sidebar-width 1fr;
+  min-height: calc(100vh - #{$nav-height});
   position: relative;
+  transition: grid-template-columns 0.2s ease;
+}
+
+.pageCollapsed {
+  grid-template-columns: $rail-width 1fr;
 }
 
 // ── Sidebar ─────────────────────────────────────────────
 .sidebar {
   background: v.$surface;
   border-right: 1px solid v.$border;
-  padding: v.$spacing-xl v.$spacing-lg;
+  overflow: hidden;
+}
+
+.panel {
+  width: $sidebar-width;
+  padding: v.$spacing-md;
   display: flex;
   flex-direction: column;
-  gap: v.$spacing-md;
+  gap: v.$spacing-lg;
 }
 
-.sidebarHeader {
-  display: none;
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: v.$spacing-xs;
+  min-height: v.$spacing-xl;
 }
 
-.sidebarTitle {
-  font-weight: 700;
-  font-size: 1rem;
+.panelTitle {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.95rem;
   color: v.$text;
 }
 
-.closeBtn {
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  color: v.$text-muted;
-  cursor: pointer;
-  padding: v.$spacing-xs;
-  border-radius: v.$radius-sm;
-  line-height: 1;
-
-  &:hover {
-    background: v.$surface-alt;
-  }
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: v.$spacing-sm;
 }
 
-.sectionTitle {
+.groupTitle {
+  font-size: 0.75rem;
   font-weight: 600;
   color: v.$text-muted;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-top: v.$spacing-sm;
+  letter-spacing: 0.04em;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
+  gap: v.$spacing-xs + 2px;
+}
+
+.rail {
+  display: none;
+  width: $rail-width;
+  padding: v.$spacing-md 0;
+  flex-direction: column;
+  align-items: center;
   gap: v.$spacing-sm;
 }
 
-.chip {
+.pageCollapsed .rail {
+  display: flex;
+}
+
+.pageCollapsed .panel {
+  display: none;
+}
+
+// ── Buttons & icons ─────────────────────────────────────
+.icon {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.flipX {
+  transform: scaleX(-1);
+}
+
+.iconBtn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: v.$spacing-xl;
+  height: v.$spacing-xl;
+  border: none;
+  border-radius: v.$radius-sm;
+  background: none;
+  color: v.$text-muted;
+  font-size: 0.9rem;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: v.$surface-alt;
+    color: v.$text;
+  }
+
+  &:focus-visible {
+    outline: 2px solid v.$primary;
+    outline-offset: 2px;
+  }
 }
 
-.loadBtn {
-  margin-top: v.$spacing-md;
+.drawerCloseBtn {
+  display: none;
 }
 
-.poolInfo {
+.textBtn {
+  border: none;
+  background: none;
+  padding: v.$spacing-xs v.$spacing-sm;
+  border-radius: v.$radius-sm;
+  color: v.$primary;
+  font-size: 0.8rem;
+  cursor: pointer;
+
+  &:hover {
+    background: v.$primary-light;
+  }
+}
+
+.badge {
+  position: absolute;
+  top: -(v.$spacing-xs);
+  right: -(v.$spacing-xs);
+  min-width: v.$spacing-md;
+  height: v.$spacing-md;
+  padding: 0 v.$spacing-xs;
+  border-radius: v.$radius-full;
+  background: v.$primary;
+  color: v.$surface;
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: v.$spacing-md;
   text-align: center;
 }
 
 // ── Main ────────────────────────────────────────────────
 .main {
+  min-width: 0;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: v.$spacing-2xl;
+  padding: v.$spacing-xl v.$spacing-lg;
 }
 
 .center {
@@ -90,169 +178,108 @@
   flex-direction: column;
   align-items: center;
   gap: v.$spacing-md;
-  color: v.$text-muted;
 }
 
-.drawBtn {
-  padding: v.$spacing-md v.$spacing-2xl;
-  font-size: 1.1rem;
-}
-
-.resetBtn {
-  margin-top: v.$spacing-sm;
-}
-
-.cardWrap {
+.deckWrap {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: v.$spacing-xl;
-  width: 100%;
-  max-width: 560px;
+  gap: v.$spacing-sm;
 }
 
-.card {
-  width: 100%;
-  background: v.$surface;
-  border-radius: v.$radius-lg;
-  box-shadow: v.$shadow-lg;
-  padding: v.$spacing-2xl;
+.deckBar {
   display: flex;
-  flex-direction: column;
-  gap: v.$spacing-lg;
-  min-height: 220px;
-}
-
-.cardMeta {
-  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: v.$spacing-sm;
 }
 
-.cardContent {
-  font-size: 1.4rem;
-  line-height: 1.5;
-  color: v.$text;
-}
-
-.cardActions {
-  display: flex;
-  gap: v.$spacing-md;
-}
-
-// ── FAB (mobile only) ───────────────────────────────────
-.fab {
-  display: none;
-}
-
-.fabBadge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: v.$primary;
-  border: 2px solid v.$surface;
-}
-
-// ── Backdrop (mobile only) ──────────────────────────────
+// ── Mobile-only elements ────────────────────────────────
+.fab,
 .backdrop {
   display: none;
 }
 
 // ── Mobile ──────────────────────────────────────────────
 @media (max-width: 639px) {
-  .page {
+  .page,
+  .pageCollapsed {
     grid-template-columns: 1fr;
   }
 
-  // Sidebar becomes a fixed drawer
+  // Sidebar becomes a drawer; collapse state doesn't apply
   .sidebar {
     position: fixed;
-    top: 56px;
+    top: $nav-height;
     left: 0;
     bottom: 0;
-    width: 280px;
+    width: $sidebar-width + v.$spacing-xl;
     z-index: 200;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
     overflow-y: auto;
+    border-right: none;
     box-shadow: v.$shadow-lg;
-    padding-top: 0;
-    gap: v.$spacing-sm;
   }
 
   .sidebarOpen {
     transform: translateX(0);
   }
 
-  .sidebarHeader {
+  .pageCollapsed .rail {
+    display: none;
+  }
+
+  .pageCollapsed .panel,
+  .panel {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: v.$spacing-md v.$spacing-lg;
-    border-bottom: 1px solid v.$border;
-    position: sticky;
-    top: 0;
-    background: v.$surface;
-    z-index: 1;
+    width: auto;
   }
 
-  .sidebar > :not(.sidebarHeader) {
-    padding-left: v.$spacing-lg;
-    padding-right: v.$spacing-lg;
+  .collapseBtn {
+    display: none;
   }
 
-  // Backdrop
+  .drawerCloseBtn {
+    display: grid;
+  }
+
   .backdrop {
     display: block;
     position: fixed;
-    inset: 0;
-    top: 56px;
-    background: rgba(0, 0, 0, 0.45);
+    inset: $nav-height 0 0;
+    border: none;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.4);
     z-index: 199;
   }
 
-  // FAB filter button
   .fab {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
+    // Top-left so it never covers the fan at the bottom
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: v.$primary;
-    color: #fff;
-    font-size: 1.3rem;
-    border: none;
+    top: $nav-height + v.$spacing-sm;
+    left: v.$spacing-sm;
+    width: v.$spacing-xl + v.$spacing-sm;
+    height: v.$spacing-xl + v.$spacing-sm;
+    border-radius: v.$radius-full;
+    border: 1px solid v.$border;
+    background: v.$surface;
+    color: v.$text;
     box-shadow: v.$shadow-md;
     cursor: pointer;
     z-index: 100;
-    transition: transform 0.15s, box-shadow 0.15s;
 
     &:active {
-      transform: scale(0.93);
+      transform: scale(0.94);
     }
   }
 
   .main {
-    padding: v.$spacing-lg v.$spacing-md;
-    min-height: calc(100vh - 56px);
-  }
-
-  .card {
-    padding: v.$spacing-lg;
-  }
-
-  .cardContent {
-    font-size: 1.15rem;
-  }
-
-  .cardWrap {
-    max-width: 100%;
+    padding: v.$spacing-md v.$spacing-sm;
+    min-height: calc(100vh - #{$nav-height});
   }
 }

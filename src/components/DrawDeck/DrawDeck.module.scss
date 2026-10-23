@@ -1,0 +1,251 @@
+@use '@styles/variables.module' as v;
+
+@mixin card-back {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.22) 0 14%, transparent 15%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.09) 0 6px, transparent 6px 12px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.09) 0 6px, transparent 6px 12px),
+    linear-gradient(160deg, v.$primary, v.$primary-dark);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: v.$spacing-sm;
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    border-radius: v.$radius-md;
+    pointer-events: none;
+  }
+}
+
+// ── Deck ────────────────────────────────────────────────
+.deck {
+  --card-w: #{v.$card-width};
+  --card-h: #{v.$card-height};
+  --reveal-w: #{v.$reveal-width};
+  --reveal-h: #{v.$reveal-height};
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+// ── Stage (revealed card) ───────────────────────────────
+.stage {
+  position: relative;
+  height: calc(var(--reveal-h) + #{v.$spacing-xl});
+  perspective: 1400px;
+}
+
+.hint {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  height: max-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: v.$spacing-sm;
+  color: v.$text-muted;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.ghost {
+  width: calc(var(--reveal-w) * 0.72);
+  height: calc(var(--reveal-h) * 0.72);
+  border: 2px dashed v.$border;
+  border-radius: v.$radius-lg;
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.arrow {
+  font-size: 1.4rem;
+  color: v.$primary;
+  animation: bob 1.6s ease-in-out infinite;
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-(v.$spacing-sm));
+  }
+}
+
+// reveal (exit) → fly → tilt → flip
+.reveal {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: var(--reveal-w);
+  height: var(--reveal-h);
+  z-index: 1;
+}
+
+.leaving {
+  z-index: 0;
+  pointer-events: none;
+}
+
+.fly,
+.tilt,
+.flip {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.flip {
+  position: relative;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  border-radius: v.$radius-lg;
+  box-shadow: v.$shadow-lg;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.front {
+  // Sit just above the back face so 3D hit-testing always picks the front
+  transform: translateZ(1px);
+  background: v.$surface;
+  border: 1px solid v.$border;
+  padding: v.$spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: v.$spacing-md;
+}
+
+.back {
+  @include card-back;
+  transform: rotateY(180deg);
+  pointer-events: none;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$spacing-sm;
+}
+
+.metaStart {
+  display: flex;
+  align-items: center;
+  gap: v.$spacing-sm;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: v.$spacing-xl;
+  height: v.$spacing-xl;
+  border: none;
+  border-radius: v.$radius-full;
+  background: v.$surface-alt;
+  color: v.$text-muted;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: v.$border;
+    color: v.$text;
+  }
+
+  &:focus-visible {
+    outline: 2px solid v.$primary;
+    outline-offset: 2px;
+  }
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 1.4rem;
+  line-height: 1.6;
+  color: v.$text;
+  text-wrap: balance;
+  overflow-y: auto;
+}
+
+// ── Fan ─────────────────────────────────────────────────
+.fan {
+  position: relative;
+  height: calc(var(--card-h) + #{v.$spacing-2xl + v.$spacing-xl});
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.fanCard {
+  @include card-back;
+  position: absolute;
+  left: 50%;
+  bottom: v.$spacing-md;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin-left: calc(var(--card-w) / -2);
+  padding: 0;
+  border: none;
+  border-radius: v.$radius-md;
+  box-shadow: v.$shadow-card;
+  transform-origin: 50% 100%;
+  cursor: grab;
+  will-change: transform;
+
+  &::after {
+    inset: 6px;
+    border-radius: v.$radius-sm;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:focus-visible {
+    outline: 3px solid v.$star-filled;
+    outline-offset: 3px;
+  }
+}
+
+.empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: v.$text-muted;
+  text-align: center;
+}
+
+// ── Mobile ──────────────────────────────────────────────
+@media (max-width: 639px) {
+  .deck {
+    --card-w: #{v.$card-width-sm};
+    --card-h: #{v.$card-height-sm};
+    --reveal-w: #{v.$reveal-width-sm};
+    --reveal-h: #{v.$reveal-height-sm};
+  }
+
+  .front {
+    padding: v.$spacing-md;
+  }
+
+  .content {
+    font-size: 1.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    animation: none;
+  }
+}

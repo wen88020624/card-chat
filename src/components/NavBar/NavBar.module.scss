@@ -24,6 +24,7 @@
   display: flex;
   gap: v.$spacing-xs;
   list-style: none;
+  flex: 1;
 }
 
 .themeSwitch {
@@ -50,4 +51,19 @@
     background: v.$primary-light;
     color: v.$primary;
   }
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: v.$spacing-sm;
+}
+
+.userEmail {
+  font-size: 0.85rem;
+  color: v.$text-muted;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

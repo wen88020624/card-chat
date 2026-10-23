@@ -1,8 +1,17 @@
 # Card Chat – Project Guide
 
+## Docs — read these first
+
+| File | What's in it |
+|---|---|
+| `docs/architecture.md` | System map: auth flow, data isolation rules, data model, draw logic, env vars, DB migration & deploy flow, known gaps |
+| `docs/wishlist.md` | Product requirements (single source of truth) with status per item |
+
+Update `docs/architecture.md` whenever you change how the system fits together (new route, auth, schema, env var, deploy step).
+
 ## Overview
 
-A Next.js 15 card-drawing app with two main features:
+A Next.js 16 card-drawing app. Users must sign in (NextAuth credentials); all data is per-user. Two main features:
 - **Draw** (`/draw`) — filter cards by category/difficulty and draw randomly without repeats
 - **Manage** (`/manage`) — CRUD for categories and cards
 
@@ -10,7 +19,7 @@ A Next.js 15 card-drawing app with two main features:
 
 | Layer | Tool |
 |---|---|
-| Framework | Next.js 15 (App Router) |
+| Framework | Next.js 16 (App Router, `proxy.js` instead of middleware) |
 | Runtime | React 19 |
 | Package manager | pnpm |
 | Lint / Format | Biome (`biome.json`) |
@@ -18,14 +27,18 @@ A Next.js 15 card-drawing app with two main features:
 | Styles | SCSS Modules |
 | State | Redux Toolkit + Redux Saga |
 | Forms | react-hook-form |
-| Database | Prisma + SQLite (`prisma/schema.prisma`) |
+| Auth | NextAuth v5 (Credentials + JWT), bcryptjs |
+| Animation | `motion` (`import from 'motion/react'`) |
+| Database | Prisma + Turso/libSQL at runtime; local SQLite only for `prisma migrate` |
 
 ## Project Structure
 
 ```
 src/
+├── auth.js                 # NextAuth config (Credentials, JWT, normalizeEmail)
+├── proxy.js                # Route guard: /draw, /manage need login; /login, /register redirect if signed in
 ├── app/
-│   ├── layout.jsx          # Root layout: Redux Provider + Joy CssVarsProvider
+│   ├── layout.jsx          # Root layout: SessionProvider + Redux Provider + Joy CssVarsProvider
 │   ├── page.jsx            # Redirects to /draw
 │   ├── draw/
 │   │   ├── page.jsx        # Route entry (can hold metadata)
@@ -35,22 +48,26 @@ src/
 │   │   ├── page.jsx
 │   │   ├── content.jsx
 │   │   └── page.module.scss
+│   ├── login/ , register/  # Auth pages (three-file pattern)
 │   └── api/
+│       ├── auth/[...nextauth]/route.js  # NextAuth handlers
+│       ├── auth/register/route.js       # POST sign-up
 │       ├── categories/route.js       # GET, POST
 │       ├── categories/[id]/route.js  # GET, PATCH, DELETE
 │       ├── cards/route.js            # GET (with ?categoryId=&stars=), POST
 │       └── cards/[id]/route.js       # GET, PATCH, DELETE
 ├── components/
 │   ├── index.jsx            # Named re-exports
+│   ├── DrawDeck/            # Fan of cards + draw/flip animation (motion)
 │   ├── NavBar/
 │   └── StarRating/
 ├── hooks/
 │   └── use-redux.jsx        # useAppDispatch / useAppSelector
 ├── lib/
-│   └── prisma.js            # Singleton PrismaClient
+│   └── prisma.jsx           # Singleton PrismaClient (always connects to Turso!)
 ├── redux/
 │   ├── store.js
-│   ├── api/apiService.jsx   # fetch wrappers for /api/cards, /api/categories
+│   ├── api/apiService.jsx   # the only place that calls fetch (cards, categories, auth register)
 │   ├── saga/
 │   │   ├── index.jsx        # rootSaga
 │   │   ├── cards.jsx        # card sagas + draw pool saga
@@ -58,7 +75,7 @@ src/
 │   └── slices/
 │       ├── cardsSlice.js
 │       ├── categoriesSlice.js
-│       └── drawSlice.js     # pool, drawnIds, current, filters, exhausted
+│       └── drawSlice.jsx    # pool, dealOrder, drawnIds, current, filters, exhausted
 └── styles/
     └── variables.module.scss  # SCSS design tokens
 ```
@@ -89,12 +106,24 @@ Component dispatch(ACTION)
 
 ## Draw Logic
 
-`drawSlice.js` manages the draw session entirely on the client:
+`drawSlice.jsx` manages the draw session entirely on the client:
 - `pool` — cards fetched with current filters
+- `dealOrder` — ids shuffled once (Fisher–Yates) on load / reset; fixed for the round
 - `drawnIds` — ids already drawn this session
-- `DRAW_CARD` — picks a random card from `pool - drawnIds`
-- `RESET_DRAW` — clears `drawnIds` and `current`
-- `exhausted` — true when all cards have been drawn
+- `DRAW_CARD(id?)` — draws that id (the card picked in the fan), else the next in `dealOrder`
+- `CLOSE_CARD` — hides `current`; the card stays drawn
+- `RESET_DRAW` — reshuffles, clears `drawnIds` and `current`
+- `exhausted` — true when drawing with nothing left
+
+Fan position `i` = `i`-th undrawn id in `dealOrder`, so the card you pick is the card you get. Details in `docs/architecture.md`.
+
+## Auth & Data Isolation
+
+Every `/api/*` handler (except NextAuth + register) must:
+1. `const session = await auth()` → 401 if missing
+2. Filter by `userId = Number(session.user.id)` (Card ownership is via `card.category.userId`)
+3. Verify any referenced resource (e.g. `categoryId`) also belongs to that user
+4. Return 404 for resources that exist but belong to someone else
 
 ## Styles
 
@@ -106,10 +135,13 @@ Component dispatch(ACTION)
 
 ```bash
 pnpm db:generate   # prisma generate
-pnpm db:migrate    # prisma migrate dev --name <name>
+pnpm db:migrate    # prisma migrate dev --name <name> (local SQLite)
+pnpm db:push:turso # apply new migrations to Turso — do this BEFORE deploying
 pnpm db:studio     # open Prisma Studio
-pnpm db:seed       # seed sample data
+pnpm db:seed       # WIPES and reseeds (seed@example.com / password123)
 ```
+
+⚠️ `src/lib/prisma.jsx` always connects to Turso, so `pnpm dev` and `pnpm db:seed` hit the **production** database unless `.env` points at a separate Turso DB.
 
 ## Development
 
@@ -141,7 +173,8 @@ pnpm dev
 
 **Don't:**
 - Call `fetch` directly from components
-- Import `PrismaClient` directly — use `src/lib/prisma.js`
+- Import `PrismaClient` directly — use `src/lib/prisma.jsx`
+- Skip the `auth()` + userId check in an API route
 - Write inline styles or raw `px` values (use SCSS tokens)
 - Use English-only UI text
 

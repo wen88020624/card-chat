@@ -3,6 +3,7 @@
 // palette can swap at runtime for dark mode; the fallback is the light value.
 $primary: var(--primary, #5b5bd6);
 $primary-light: var(--primary-light, #e8e8fd);
+$primary-dark: var(--primary-dark, #4040b0);
 $surface: var(--surface, #ffffff);
 $surface-alt: var(--surface-alt, #f7f7f8);
 $border: var(--border, #e2e2e8);
@@ -34,3 +35,14 @@ $radius-full: 999px;
 $shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
 $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
 $shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.14);
+
+// Draw deck cards
+$card-width: 116px;
+$card-height: 164px;
+$card-width-sm: 84px;
+$card-height-sm: 120px;
+$reveal-width: 320px;
+$reveal-height: 420px;
+$reveal-width-sm: 264px;
+$reveal-height-sm: 352px;
+$shadow-card: 0 2px 6px rgba(20, 20, 60, 0.18), 0 10px 24px rgba(20, 20, 60, 0.14);

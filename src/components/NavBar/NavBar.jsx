@@ -1,7 +1,9 @@
 'use client';
 
+import Button from '@mui/joy/Button';
 import Switch from '@mui/joy/Switch';
 import { useColorScheme } from '@mui/joy/styles';
+import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -55,6 +57,15 @@ export default function NavBar() {
 
   const isDark = mounted && mode === 'dark';
 
+  const { data: session, status } = useSession();
+
+  // Full page load so the Redux store (cards, draw pool) of this user
+  // doesn't leak into the next session in the same tab
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    window.location.assign('/login');
+  };
+
   return (
     <nav className={styles.nav}>
       <span className={styles.logo}>Card Chat</span>
@@ -81,6 +92,28 @@ export default function NavBar() {
           input: { 'aria-label': '切換深色模式' },
         }}
       />
+      <div className={styles.userSection}>
+        {status === 'authenticated' && (
+          <>
+            <span className={styles.userEmail}>{session.user.email}</span>
+            <Button
+              size="sm"
+              variant="outlined"
+              color="neutral"
+              onClick={handleSignOut}
+            >
+              登出
+            </Button>
+          </>
+        )}
+        {status === 'unauthenticated' && (
+          <Link href="/login">
+            <Button size="sm" variant="soft">
+              登入
+            </Button>
+          </Link>
+        )}
+      </div>
     </nav>
   );
 }
